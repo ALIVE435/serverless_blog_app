@@ -7,13 +7,19 @@ const authMiddleware= createMiddleware(async (c, next) => {
 	// 	c.status(401);
 	// 	return c.json({ error: "unauthorized" });
 	// }
-	const payload = await verify(jwt, c.env.JWT_SECRET);
-	if (!payload) {
-		c.status(401);
+	try{
+		const payload = await verify(jwt, c.env.JWT_SECRET);
+	    if (!payload) {
+		    c.status(403);
+		    return c.json({ message :"You are not logged in" });
+	    }
+	    c.set('userId', payload.id);
+		await next()
+	}catch(e){
+		c.status(403);
 		return c.json({ message :"You are not logged in" });
 	}
-	c.set('userId', payload.id);
-	await next()
+	
 });
 export default authMiddleware;
 
