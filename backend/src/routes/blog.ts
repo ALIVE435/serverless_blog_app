@@ -11,12 +11,28 @@ type varibles={
     userId:string;
 }
 
-export const blogRouter = new Hono<{Bindings:bindings,Variables:varibles}>();//setting context of env variable here .toml file(https://hono.dev/getting-started/cloudflare-workers#load-env-when-local-development) and  upcoming data from middleware (https://hono.dev/api/context#contextvariablemap https://hono.dev/api/context#set-get)
+export const blogRoute = new Hono<{Bindings:bindings,Variables:varibles}>();//setting context of env variable here .toml file(https://hono.dev/getting-started/cloudflare-workers#load-env-when-local-development) and  upcoming key(userId) we'r adding in middleware (https://hono.dev/api/context#contextvariablemap https://hono.dev/api/context#set-get)
 
 
-blogRouter.use(authMiddleware)
+blogRoute.use(authMiddleware) //passed in as callback
 
-blogRouter.put('/', async (c) => {
+blogRoute.post('/',async(c)=>{
+	const prisma = new PrismaClient({
+		datasourceUrl: c.env?.DATABASE_URL	,
+	}).$extends(withAccelerate());
+
+	const body = await c.req.json();
+	const blog= await prisma.post.create({
+		data:{
+			title:body.title,
+			content:body.content,
+			authorId:c.get('userId')
+		}
+	});
+	return c.json(blog)
+})
+
+blogRoute.put('/', async (c) => {
 	const userId = c.get('userId');
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL	,
@@ -29,25 +45,39 @@ blogRouter.put('/', async (c) => {
 			authorId: userId
 		},
 		data: {
-			title: body.title,
-			content: body.content
+			title: body.title!=null?body.title:undefined,     //https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/null-and-undefined#null-and-undefined-in-a-graphql-resolver
+			content: body.content!=null?body.content:undefined
 		}
 	});
 
 	return c.text('updated post');
 });
 
-blogRouter.get('/:id', async (c) => {
+//implement pagination : send first 5/7 posts if ask more then deliver  https://www.prisma.io/docs/orm/prisma-client/queries
+blogRoute.get('/bulk',async(c)=>{     //http://localhost:8787/api/v1/blog/bulk  if controller cant reach here it'll move down
+	const prisma = new PrismaClient({
+		datasourceUrl: c.env?.DATABASE_URL	,
+	}).$extends(withAccelerate());
+
+	const blogs =await prisma.post.findMany();
+	return c.json(blogs);
+})
+
+blogRoute.get('/:id', async (c) => {     //http://localhost:8787/api/v1/blog/bulk anything after 'blog' will reach here
 	const id = c.req.param('id');
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL	,
 	}).$extends(withAccelerate());
 	
-	const post = await prisma.post.findUnique({
-		where: {
-			id
-		}
-	});
-
-	return c.json(post);
-})
+	try{
+		const post = await prisma.post.findFirst({
+			where: {
+				id
+			}
+		});
+		return c.json(post);
+	}catch(e){
+		c.status(411);
+		return c.json("error while fetching blog")
+	}
+});
