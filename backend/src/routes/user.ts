@@ -3,9 +3,7 @@ import { PrismaClient } from '@prisma/client/edge' //not prisma/client, it is pr
 import { withAccelerate } from '@prisma/extension-accelerate'
 import {sign,decode,verify} from "hono/jwt"
 import { env } from 'hono/adapter'
-
-
-
+import { signupInp,signinInp } from '@alive435/medium-common';
 const userRoute = new Hono();
 
 type Bindings={
@@ -14,13 +12,20 @@ type Bindings={
 }
 
 userRoute.post('/signup', async (c) => {
+	const body = await c.req.json();
+	const {success}=signupInp.safeParse(body);
+	if(!success){
+		c.status(411);
+		return c.json({
+			message:"inputs not correct"
+		})
+	}
 	const secret=env<Bindings>(c);
 	const prisma = new PrismaClient({
 		datasourceUrl: secret.DATABASE_URL
 	}).$extends(withAccelerate());
 
-	const body = await c.req.json();
-	console.log(body)
+	
 	try {
 		const user = await prisma.user.create({
 			data: {
@@ -43,21 +48,31 @@ userRoute.post('/signup', async (c) => {
 
 
 userRoute.post('/signin', async (c) => {
+	const body = await c.req.json();
+	const validate=signinInp.safeParse(body);
+	if(!validate.success){
+		c.status(411);
+		return c.json({
+			message:validate.error.message
+		})
+	}
 	const secret=env<Bindings>(c);
 	const prisma = new PrismaClient({
 		datasourceUrl: secret.DATABASE_URL,
 	}).$extends(withAccelerate());
 
-	const body = await c.req.json();
 	const user = await prisma.user.findUnique({
 		where: {
 			email: body.email
 		}
 	});
-
 	if (!user) {
 		c.status(403);
 		return c.json({ error: "user not found" });
+	}
+	if(user && user.password!=body.password){
+		c.status(411);
+		return c.json({message:"incorrect password"});
 	}
 	const jwt = await sign({ id: user.id }, secret.JWT_SECRET);
     c.text("you are signed in now");

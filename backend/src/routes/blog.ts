@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Hono } from "hono";
 import authMiddleware from "../middleware";
+import { createPost,updatePost } from "@alive435/medium-common";
 
 type bindings={
     DATABASE_URL:string;
@@ -17,11 +18,19 @@ export const blogRoute = new Hono<{Bindings:bindings,Variables:varibles}>();//se
 blogRoute.use(authMiddleware) //passed in as callback
 
 blogRoute.post('/',async(c)=>{
+	const body = await c.req.json();
+	const {success}=createPost.safeParse(body);
+	if(!success){
+		c.status(411);
+		return c.json({
+			message:"inputs not correct"
+		})
+	}
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL	,
 	}).$extends(withAccelerate());
 
-	const body = await c.req.json();
+	
 	const blog= await prisma.post.create({
 		data:{
 			title:body.title,
@@ -33,12 +42,19 @@ blogRoute.post('/',async(c)=>{
 })
 
 blogRoute.put('/', async (c) => {
+	const body = await c.req.json();
+	const {success}= updatePost.safeParse(body);
+	if(!success){
+		c.status(411);
+		return c.json({
+			message:"inputs not correct"
+		})
+	}
 	const userId = c.get('userId');
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL	,
 	}).$extends(withAccelerate());
 
-	const body = await c.req.json();
 	prisma.post.update({
 		where: {
 			id: body.id,
