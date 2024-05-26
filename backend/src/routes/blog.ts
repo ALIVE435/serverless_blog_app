@@ -8,26 +8,26 @@ type bindings={
     DATABASE_URL:string;
     JWT_SECRET:string;
 }
-type varibles={
+type variables={
     userId:string;
 }
 
-export const blogRoute = new Hono<{Bindings:bindings,Variables:varibles}>();//setting context of env variable here .toml file(https://hono.dev/getting-started/cloudflare-workers#load-env-when-local-development) and  upcoming key(userId) we'r adding in middleware (https://hono.dev/api/context#contextvariablemap https://hono.dev/api/context#set-get)
+export const blogRoute = new Hono<{Bindings:bindings,Variables:variables}>();//setting context of env variable, here .toml file(https://hono.dev/getting-started/cloudflare-workers#load-env-when-local-development) and  upcoming key(userId) we'r adding in middleware (https://hono.dev/api/context#contextvariablemap https://hono.dev/api/context#set-get)
 
 
 blogRoute.use(authMiddleware) //passed in as callback
 
 blogRoute.post('/',async(c)=>{
 	const body = await c.req.json();
-	const {success}=createPost.safeParse(body);
-	if(!success){
+	const validate=createPost.safeParse(body);
+	if(!validate.success){
 		c.status(411);
 		return c.json({
-			message:"inputs not correct"
+			message:validate.error.issues[0].message
 		})
 	}
 	const prisma = new PrismaClient({
-		datasourceUrl: c.env?.DATABASE_URL	,
+		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
 
 	
@@ -43,19 +43,19 @@ blogRoute.post('/',async(c)=>{
 
 blogRoute.put('/', async (c) => {
 	const body = await c.req.json();
-	const {success}= updatePost.safeParse(body);
-	if(!success){
+	const validate= updatePost.safeParse(body);
+	if(!validate.success){
 		c.status(411);
 		return c.json({
-			message:"inputs not correct"
+			message:validate.error.issues[0].message
 		})
 	}
 	const userId = c.get('userId');
 	const prisma = new PrismaClient({
-		datasourceUrl: c.env?.DATABASE_URL	,
+		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
 
-	prisma.post.update({
+	const updatedPost=prisma.post.update({
 		where: {
 			id: body.id,
 			authorId: userId
@@ -65,8 +65,11 @@ blogRoute.put('/', async (c) => {
 			content: body.content!=null?body.content:undefined
 		}
 	});
-
-	return c.text('updated post');
+	if(!updatedPost){
+		c.status(404);
+		return c.json({error:"post not found"})
+	}
+	return c.json({updatedPost});
 });
 
 //implement pagination : send first 5/7 posts if ask more then deliver  https://www.prisma.io/docs/orm/prisma-client/queries
@@ -82,7 +85,7 @@ blogRoute.get('/bulk',async(c)=>{     //http://localhost:8787/api/v1/blog/bulk  
 blogRoute.get('/:id', async (c) => {     //http://localhost:8787/api/v1/blog/bulk anything after 'blog' will reach here
 	const id = c.req.param('id');
 	const prisma = new PrismaClient({
-		datasourceUrl: c.env?.DATABASE_URL	,
+		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
 	
 	try{
@@ -91,9 +94,13 @@ blogRoute.get('/:id', async (c) => {     //http://localhost:8787/api/v1/blog/bul
 				id
 			}
 		});
+		if(!post){
+			c.status(404);
+			return c.json({error:"post not found"})
+		}
 		return c.json(post);
 	}catch(e){
 		c.status(411);
-		return c.json("error while fetching blog")
+		return c.json({error:"error while fetching blog"})
 	}
 });
