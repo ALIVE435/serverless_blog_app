@@ -41,7 +41,7 @@ userRoute.post('/signup', async (c) => {
 		return c.json({user,jwt})
 	} catch(e) {
 		c.status(403); //unauthorised
-		return c.text("user already exists")
+		return c.json({message:"user already exists"})
 	}
 	//return c.text('signup route')
 })
@@ -68,7 +68,7 @@ userRoute.post('/signin', async (c) => {
 	});
 	if (!user) {
 		c.status(403);
-		return c.json({ error: "user not found" });
+		return c.json({message: "user not found" });
 	}
 	if(user && user.password!=body.password){
 		c.status(411);

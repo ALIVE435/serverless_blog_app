@@ -19,17 +19,20 @@ export const Form = ({ type }: props) => {
             password:""
         }
     );
+    const [errorMessage, setErrorMessage] = useState(null)
     const navigate=useNavigate();
     const sendRequest=async (e:React.MouseEvent<HTMLElement>)=>{
-        console.log(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`)
+        //console.log(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`)
+        setErrorMessage(null)
         try{
             const response = await axios.post(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`,postInputs);
+            //console.log(response)
             const jwt=response.data.jwt;
-            console.log(jwt);
             localStorage.setItem("token",jwt);
-            //navigate("/blogs")
-        }catch(e){
-            console.log(e);
+            navigate("/blogs")            
+        }catch(e:any){
+            //console.log(e.response.data.message);
+            setErrorMessage(e.response.data.message)
         }
     }
     return (
@@ -59,6 +62,7 @@ export const Form = ({ type }: props) => {
                                     setPostInputs({...postInputs,password:e.target.value})
                                 }} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 box-border" required={true}/>
                             </div>
+                            {errorMessage?<div>{errorMessage}</div>:null}
                             {type==="sign-up"?<div className="flex items-center">
                                 <input id="terms" aria-describedby="terms" type="checkbox" className="w-4 h-3 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800" required={true} />
                                 <label htmlFor="terms" className="ml-3 text-sm font-light text-gray-500 dark:text-gray-300">I accept the <a className="font-medium text-primary-600 hover:underline dark:text-primary-500" href="#">Terms and Conditions</a></label>
