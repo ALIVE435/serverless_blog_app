@@ -1,10 +1,8 @@
-import { Link } from "react-router-dom";
+import {  Link } from "react-router-dom";
 import { Avatar } from "./Avatar";
-import {blogId} from "../atoms/blogList"
-import { useSetRecoilState } from "recoil";
 
 interface BlogCardProps {
-    id:string,
+    id: string,
     authorname: string;
     title: string;
     content: string;
@@ -19,9 +17,8 @@ export const BlogCard: React.FC<BlogCardProps> = ({
     content,
     publishedDate,
 }) => {
-    const setblogId = useSetRecoilState<string>(blogId)
     return (
-        <div className="border-b-2 border-slate-100 my-6">
+        <div className="w-full border-b-2 border-slate-100 my-6">
             <div className="flex justify-start items-center ">
                 <Link to="" className="flex justify-start items-center m-0 p-0">
                     <div className="">
@@ -32,7 +29,7 @@ export const BlogCard: React.FC<BlogCardProps> = ({
                 <div className=" flex justify-center items-center pl-2"><Circle></Circle></div>
                 <div className="pl-2 font-thin text-slate-400 text-sm">{publishedDate}</div>
             </div>
-            <Link to={`/blog/${id}`} onClick={()=>{setblogId(id)}} >
+            <Link to={`/blog/${id}`} >
                 <div className="text-xl font-semibold">
                     {title}
                 </div>

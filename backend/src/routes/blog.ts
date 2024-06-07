@@ -38,7 +38,7 @@ blogRoute.post('/',async(c)=>{
 			authorId:c.get('userId')
 		}
 	});
-	return c.json(blog)
+	return c.json({blogId:blog.id})
 })
 
 blogRoute.put('/', async (c) => {
@@ -103,6 +103,16 @@ blogRoute.get('/:id', async (c) => {     //http://localhost:8787/api/v1/blog/bul
 		const post = await prisma.post.findFirst({
 			where: {
 				id
+			},
+			select:{
+				id:true,
+				content:true,
+				title:true,
+				author:{
+					select:{
+						name:true
+					}
+				}
 			}
 		});
 		if(!post){

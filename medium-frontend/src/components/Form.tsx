@@ -22,6 +22,7 @@ export const Form = ({ type }: props) => {
     const [errorMessage, setErrorMessage] = useState(null)
     const navigate=useNavigate();
     const sendRequest=async (e:React.MouseEvent<HTMLElement>)=>{
+        console.log(e)
         //console.log(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`)
         setErrorMessage(null)
         try{

@@ -1,39 +1,11 @@
-import { atom , selector} from 'recoil';
+import { atom} from 'recoil';
+import { BACKEND_URL } from '../config';
 
-interface Blog {
-    id: string;
-    content: string;
-    title: string;
-    author: {
-        name: string;
-    };
-}
 
-export const blogList = atom<Blog[]>({
-    key: 'blogState', // unique key for this atom
-    default: [
-        {
-            id: '',
-            content: '',
-            title: '',
-            author: {
-                name: ''
-            }
-        }
-    ]
+
+export const api = atom({
+    key: 'api-key', // unique key for this atom
+    default: `${BACKEND_URL}/api/v1/blog/`
 });
 
-export const blogId = atom({
-    key:"id",
-    default:""
-})
 
-export const blog = selector<Blog | undefined>({
-  key: 'blog',
-  get: ({ get }):Blog => {
-    const blogs = get(blogList);
-    const id= get(blogId);
-    const desiredBlog = blogs.filter((blog:Blog)=>blog.id==id)
-    return desiredBlog[0];
-  },
-});

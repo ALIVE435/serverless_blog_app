@@ -1,5 +1,5 @@
-export function Avatar({ name, size }: { name: string, size: { h: number, w: number } }) {
 
+export function Avatar({ name, size }: { name: string, size: { h: number, w: number } }) {
     return (
         <button>
             <div className={`relative inline-flex items-center justify-center w-${size.w} h-${size.h} overflow-hidden bg-gray-200 rounded-full dark:bg-gray-600`}>
