@@ -1,14 +1,17 @@
 import { Appbar } from "../components/Appbar"
 import axios from "axios"
-import { BACKEND_URL } from "../config"
 import { useState } from "react"
 import React from 'react';
 import { useNavigate } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { api} from "../atoms/blogList"
 
 export const Publish = () => {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const navigate = useNavigate()
+    const url = useRecoilValue(api);
+
 
     return (
         <div className="box-border m-0 p-0 ">
@@ -22,7 +25,7 @@ export const Publish = () => {
                 <input onChange={(e) => { setTitle(e.target.value) }} className="outline-none block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Title"></input>
                 <TextEditor setDescription={setDescription}></TextEditor>
                 <button onClick={async() => {
-                    const response = await axios.post(`${BACKEND_URL}/api/v1/blog`, {
+                    const response = await axios.post(`${url}blog`, {
                       title:`${title}`,
                       content:`${description}`
                     },{

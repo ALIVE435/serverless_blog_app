@@ -1,7 +1,8 @@
 import { signinInp ,signupInp } from "@alive435/medium-common"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { BACKEND_URL } from "../config"
+import { useRecoilValue } from "recoil";
+import { api} from "../atoms/blogList"
 import axios from "axios"
 
 type props = {
@@ -9,6 +10,7 @@ type props = {
 }
 
 export const Form = ({ type }: props) => {
+    const url = useRecoilValue(api);
     const [postInputs, setPostInputs]= useState<signinInp | signupInp>(
         (type==="sign-up")?{
             name:"",
@@ -26,7 +28,7 @@ export const Form = ({ type }: props) => {
         //console.log(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`)
         setErrorMessage(null)
         try{
-            const response = await axios.post(`${BACKEND_URL}/api/v1/user${type==="sign-in"?"/signin":"/signup"}`,postInputs);
+            const response = await axios.post(`${url}user${type==="sign-in"?"/signin":"/signup"}`,postInputs);
             //console.log(response)
             const jwt=response.data.jwt;
             localStorage.setItem("token",jwt);

@@ -16,6 +16,7 @@ export const Blog = () => {
     const { id } = useParams<{ id: string }>()
     const { loading, blog } = useBlog(id ?? "bulk")
     //const { loading, blog } = useBlog({ id: "iwe" })
+
     return (
         <div className="box-border m-0 p-0">
             <div className="w-full max-w-full min-h-fit">

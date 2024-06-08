@@ -19,7 +19,7 @@ export const useBlog = (id:string)=>{
     const url = useRecoilValue(api);
 
     useEffect(()=>{
-        axios.get(`${url}${id}`,{
+        axios.get(`${url}blog/${id}`,{
             headers:{
                 Authorization:localStorage.getItem("token")
             }
@@ -45,7 +45,7 @@ export const useBlogs=()=>{
     const url = useRecoilValue(api);
 
     useEffect(()=>{
-        axios.get(`${url}bulk`,{
+        axios.get(`${url}blog/bulk`,{
             headers:{
                 Authorization:localStorage.getItem("token")
             }
