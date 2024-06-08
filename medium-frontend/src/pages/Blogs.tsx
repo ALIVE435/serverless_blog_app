@@ -18,7 +18,6 @@ export const Blogs = () => {
     // if (loading) return <div className="p-5 mt-[60px] font-bold">
     //     <Skeleton></Skeleton>
     // </div>
-    console.log(import.meta.env.VITE_BACKEND_URL)
 
     return (
         <div className="box-border m-0 p-0 ">
